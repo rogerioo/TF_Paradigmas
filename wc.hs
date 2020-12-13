@@ -30,9 +30,21 @@ separeArgs (arg : args) files flags =
     then separeArgs args files (flags ++ [arg])
     else separeArgs args (files ++ [arg]) flags
 
-separeFlags :: [Char] -> [[Char]] -> [[Char]]
-separeFlags "" output = output
-separeFlags flags output = separeFlags (tail flags) (output ++ ["-" ++ [head flags]])
+separeFlags :: Foldable t => t [Char] -> [[Char]] -> [[Char]]
+separeFlags flags output =
+  foldl
+    ( \output flag ->
+        output
+          ++ if isInfixOf "-" flag && length flag > 2
+            then map ("-" ++) (tail $ splitOn "" $ tail flag)
+            else [flag]
+    )
+    output
+    flags
+
+removeDuplicates :: Eq a => [a] -> [a]
+removeDuplicates [] = []
+removeDuplicates (x : xs) = x : removeDuplicates (filter (/= x) xs)
 
 trimString :: [Char] -> [Char]
 trimString = reverse . dropWhile isSpace . reverse
@@ -52,8 +64,8 @@ main = do
           putStrLn versionMessage
         else do
           let split = separeArgs args [] []
-              files = fst split
-              flags = snd split
+              files = removeDuplicates $ fst split
+              flags = removeDuplicates $ separeFlags (snd split) []
 
           filesNames <-
             if any (isInfixOf "--files0-from=") args
@@ -66,10 +78,10 @@ main = do
 
           let content = map trimString rawString
 
-          let newArgs
-                | length flags > 1 && length (flags !! 1) > 2 && (flags !! 1) !! 1 /= '-' = separeFlags (flags !! 1) []
-                | otherwise = flags
-
-          let result = multipleWc content (newArgs ++ [""]) filesNames "" ++ "\n" ++ wc (unlines content) "" (newArgs ++ [""]) "" ++ "total"
+          let result =
+                multipleWc content (flags ++ [""]) filesNames ""
+                  ++ "\n"
+                  ++ wc (unlines content) "" (flags ++ [""]) ""
+                  ++ "total"
 
           putStrLn result
