@@ -55,4 +55,5 @@ Serão gerados os arquivos auxiliares e o executável. Para executar o programa 
 $ ./mywc wc.c
 $ ./mywc wc.c -wl
 $ ./mywc wc.c -w -l -c
+$ ./mywc wc.c -w -l -c file.txt
 ```
