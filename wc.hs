@@ -23,9 +23,16 @@ multipleWc :: [[Char]] -> [[Char]] -> [[Char]] -> [Char] -> [Char]
 multipleWc (input : inputs) flags (name : names) output = multipleWc inputs flags names output ++ wc input "" flags "" ++ name ++ "\n"
 multipleWc [] flags [] output = output
 
-separeArgs :: [Char] -> [[Char]] -> [[Char]]
-separeArgs "" output = output
-separeArgs flags output = separeArgs (tail flags) (output ++ ["-" ++ [head flags]])
+separeArgs :: [[Char]] -> [[Char]] -> [[Char]] -> ([[Char]], [[Char]])
+separeArgs [] files flags = (files, flags)
+separeArgs (arg : args) files flags =
+  if isInfixOf "-" arg
+    then separeArgs args files (flags ++ [arg])
+    else separeArgs args (files ++ [arg]) flags
+
+separeFlags :: [Char] -> [[Char]] -> [[Char]]
+separeFlags "" output = output
+separeFlags flags output = separeFlags (tail flags) (output ++ ["-" ++ [head flags]])
 
 trimString :: [Char] -> [Char]
 trimString = reverse . dropWhile isSpace . reverse
@@ -44,18 +51,25 @@ main = do
           versionMessage <- readProcess "wc" ["--version"] ""
           putStrLn versionMessage
         else do
-          files <- if any (isInfixOf "--files0-from=") args then readFile $ drop 14 (head args) else readFile $ head args
+          let split = separeArgs args [] []
+              files = fst split
+              flags = snd split
 
-          rawString <- if any (isInfixOf "--files0-from=") args then mapM readFile $ splitOn "\0" files else return [files]
+          filesNames <-
+            if any (isInfixOf "--files0-from=") args
+              then do
+                filesPath <- readFile $ drop 14 (head args)
+                return (splitOn "\0" filesPath)
+              else return files
+
+          rawString <- mapM readFile filesNames
 
           let content = map trimString rawString
 
           let newArgs
-                | length args > 1 && length (args !! 1) > 2 && (args !! 1) !! 1 /= '-' = separeArgs (args !! 1) []
-                | otherwise = args
+                | length flags > 1 && length (flags !! 1) > 2 && (flags !! 1) !! 1 /= '-' = separeFlags (flags !! 1) []
+                | otherwise = flags
 
-          let result
-                | any (isInfixOf "--files0-from=") args = multipleWc content (tail newArgs ++ [""]) (splitOn "\0" files) "" ++ "\n" ++ wc (unlines content) "" (tail newArgs ++ [""]) "" ++ "total"
-                | otherwise = wc (head content) "" (tail newArgs ++ [""]) "" ++ head args
+          let result = multipleWc content (newArgs ++ [""]) filesNames "" ++ "\n" ++ wc (unlines content) "" (newArgs ++ [""]) "" ++ "total"
 
           putStrLn result
