@@ -56,4 +56,5 @@ $ ./mywc wc.c
 $ ./mywc wc.c -wl
 $ ./mywc wc.c -w -l -c
 $ ./mywc wc.c -w -l -c file.txt
+$ ./mywc --files0-from=file.txt
 ```

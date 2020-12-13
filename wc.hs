@@ -26,7 +26,7 @@ multipleWc [] flags [] output = output
 separeArgs :: [[Char]] -> [[Char]] -> [[Char]] -> ([[Char]], [[Char]])
 separeArgs [] files flags = (files, flags)
 separeArgs (arg : args) files flags =
-  if isInfixOf "-" arg
+  if "-" `isInfixOf` arg
     then separeArgs args files (flags ++ [arg])
     else separeArgs args (files ++ [arg]) flags
 
@@ -35,7 +35,7 @@ separeFlags flags output =
   foldl
     ( \output flag ->
         output
-          ++ if isInfixOf "-" flag && length flag > 2
+          ++ if "-" `isInfixOf` flag && not ("--" `isInfixOf` flag)
             then map ("-" ++) (tail $ splitOn "" $ tail flag)
             else [flag]
     )
@@ -68,7 +68,7 @@ main = do
               flags = removeDuplicates $ separeFlags (snd split) []
 
           filesNames <-
-            if any (isInfixOf "--files0-from=") args
+            if any ("--files0-from=" `isInfixOf`) args
               then do
                 filesPath <- readFile $ drop 14 (head args)
                 return (splitOn "\0" filesPath)
