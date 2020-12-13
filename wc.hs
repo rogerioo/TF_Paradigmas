@@ -80,8 +80,12 @@ main = do
 
           let result =
                 multipleWc content (flags ++ [""]) filesNames ""
-                  ++ "\n"
-                  ++ wc (unlines content) "" (flags ++ [""]) ""
-                  ++ "total"
+                  ++ ( if length files > 1
+                         then
+                           "\n"
+                             ++ wc (unlines content) "" (flags ++ [""]) ""
+                             ++ "total\n"
+                         else ""
+                     )
 
-          putStrLn result
+          putStr result
