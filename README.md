@@ -21,7 +21,7 @@ O wc é uma ferramenta usada para, por padrão, a contagem de linhas, palavras e
 |          --version          |                               Mostra a versão do wc                               |
 | --files0-from=**file_path** |         Usa como arquivos de entrada os definido no arquivo **file_path**         |
 
-Para que a flag *--files0-from=* possa funcionar corretamente, o arquivo de entrada deve usar como caractere separador entre os nomes dos arquivos o caractere nulo *\0*.
+Para que a flag *--files0-from=* possa funcionar corretamente, o arquivo de entrada deve usar como caractere separador entre os nomes dos arquivos o caractere nulo *\0*. Um exemplo de arquivo aceito pelo comando está [disponível](https://github.com/rogerioo/TF_Paradigmas/blob/master/file.txt) no repositório, e pode ser usado como modelo para outros.
 
 ## Como executar
 
@@ -63,7 +63,7 @@ $ ./mywc --files0-from=file.txt
 
 1. Qual é o paradigma predominante do porte?
 
-> Linguagem funcional
+> Paradigma Funcional
 
 2. Quais foram os pontos do código que sofreram as maiores modificações?
 
