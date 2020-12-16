@@ -1,6 +1,5 @@
 import Data.Char (isSpace)
 import Data.List (isInfixOf, maximumBy)
-import Data.List.Split (splitOn)
 import Data.Ord (comparing)
 import System.Environment (getArgs)
 import System.Process (readProcess)
@@ -36,7 +35,7 @@ separeFlags flags output =
     ( \output flag ->
         output
           ++ if "-" `isInfixOf` flag && not ("--" `isInfixOf` flag)
-            then map ("-" ++) (tail $ splitOn "" $ tail flag)
+            then map ("-" ++) (splitAll $ tail flag)
             else [flag]
     )
     output
@@ -48,6 +47,18 @@ removeDuplicates (x : xs) = x : removeDuplicates (filter (/= x) xs)
 
 trimString :: [Char] -> [Char]
 trimString = reverse . dropWhile isSpace . reverse
+
+splitByCharacter :: Char -> [Char] -> [String]
+splitByCharacter _ "" = []
+splitByCharacter delimiterChar inputString = foldr f [""] inputString
+  where
+    f :: Char -> [String] -> [String]
+    f currentChar allStrings@(partialString : handledStrings)
+      | currentChar == delimiterChar = "" : allStrings
+      | otherwise = (currentChar : partialString) : handledStrings
+
+splitAll :: [a] -> [[a]]
+splitAll = fmap (: [])
 
 main :: IO ()
 main = do
@@ -71,7 +82,7 @@ main = do
             if any ("--files0-from=" `isInfixOf`) args
               then do
                 filesPath <- readFile $ drop 14 (head args)
-                return (splitOn "\0" filesPath)
+                return (splitByCharacter '\0' filesPath)
               else return files
 
           rawString <- mapM readFile filesNames
